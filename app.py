@@ -155,20 +155,20 @@ def process_excel_file(df):
         df_with_phones = pd.concat([rows_with_phones, phones_df], axis=1)
         df_with_phones = df_with_phones.dropna(subset=['Phone1'])
         
-        # Column mapping and processing
+       # Replace your current column_mapping with:
         column_mapping = {
-            'Owner 1 First Name': 'First Name',
-            'Owner 1 Last Name': 'Last Name',
-            'Mail Full Address': 'Mailing Address',
-            'Mail City': 'Mailing City',
-            'Mail State': 'Mailing State',
-            'Mail Zip': 'Mailing Zip',
-            'Parcel Full Address': 'Property Address',
-            'Parcel City': 'Property City',
-            'Parcel State': 'Property State',
-            'Parcel Zip': 'Property Zip',
+            'Owner 1 First Name': 'FirstName',      # Changed: removed space
+            'Owner 1 Last Name': 'LastName',        # Changed: removed space  
+            'Mail Full Address': 'MailingAddress',  # Changed: removed space
+            'Mail City': 'MailingCity',             # Changed: removed space
+            'Mail State': 'MailingState',           # Changed: removed space
+            'Mail Zip': 'MailingZip',               # Changed: removed space
+            'Parcel Full Address': 'PropertyAddress', # Changed: removed space
+            'Parcel City': 'PropertyCity',          # Changed: removed space
+            'Parcel State': 'PropertyState',        # Changed: removed space
+            'Parcel Zip': 'PropertyZip',            # Changed: removed space
             'APN': 'APN',
-            'Parcel County': 'Property County',
+            'Parcel County': 'PropertyCounty',      # Changed: removed space
             'Lot Acres': 'Acreage'
         }
         
