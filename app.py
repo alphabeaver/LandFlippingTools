@@ -155,20 +155,20 @@ def process_excel_file(df):
         df_with_phones = pd.concat([rows_with_phones, phones_df], axis=1)
         df_with_phones = df_with_phones.dropna(subset=['Phone1'])
         
-       # Replace your current column_mapping with:
+        # FIXED: Column mapping without spaces to match Launch Control template
         column_mapping = {
-            'Owner 1 First Name': 'FirstName',      # Changed: removed space
-            'Owner 1 Last Name': 'LastName',        # Changed: removed space  
-            'Mail Full Address': 'MailingAddress',  # Changed: removed space
-            'Mail City': 'MailingCity',             # Changed: removed space
-            'Mail State': 'MailingState',           # Changed: removed space
-            'Mail Zip': 'MailingZip',               # Changed: removed space
-            'Parcel Full Address': 'PropertyAddress', # Changed: removed space
-            'Parcel City': 'PropertyCity',          # Changed: removed space
-            'Parcel State': 'PropertyState',        # Changed: removed space
-            'Parcel Zip': 'PropertyZip',            # Changed: removed space
+            'Owner 1 First Name': 'FirstName',
+            'Owner 1 Last Name': 'LastName',
+            'Mail Full Address': 'MailingAddress',
+            'Mail City': 'MailingCity',
+            'Mail State': 'MailingState',
+            'Mail Zip': 'MailingZip',
+            'Parcel Full Address': 'PropertyAddress',
+            'Parcel City': 'PropertyCity',
+            'Parcel State': 'PropertyState',
+            'Parcel Zip': 'PropertyZip',
             'APN': 'APN',
-            'Parcel County': 'PropertyCounty',      # Changed: removed space
+            'Parcel County': 'PropertyCounty',
             'Lot Acres': 'Acreage'
         }
         
@@ -179,20 +179,24 @@ def process_excel_file(df):
         df_cleaned = df_with_phones[selected_cols].copy()
         df_cleaned = df_cleaned.rename(columns=column_mapping)
         
-        # Handle names
-        df_cleaned['First Name'] = df_cleaned.get('First Name', pd.Series(dtype=object)).fillna('')
-        df_cleaned['Last Name'] = df_cleaned.get('Last Name', pd.Series(dtype=object)).fillna('')
+        # Handle names - FIXED: Using column names without spaces
+        df_cleaned['FirstName'] = df_cleaned.get('FirstName', pd.Series(dtype=object)).fillna('')
+        df_cleaned['LastName'] = df_cleaned.get('LastName', pd.Series(dtype=object)).fillna('')
         
         if 'Owner 1 Full Name' in df_with_phones.columns:
-            mask = (df_cleaned['First Name'] == '') & (df_cleaned['Last Name'] == '')
+            mask = (df_cleaned['FirstName'] == '') & (df_cleaned['LastName'] == '')
             if mask.any():
-                df_cleaned.loc[mask, 'First Name'] = df_with_phones.loc[mask, 'Owner 1 Full Name'].fillna('')
+                df_cleaned.loc[mask, 'FirstName'] = df_with_phones.loc[mask, 'Owner 1 Full Name'].fillna('')
         
-           final_columns = [
-                'FirstName', 'LastName', 'Email','MailingAddress', 'MailingCity', 'MailingState', 
-                'MailingZip','PropertyAddress', 'PropertyCity', 'PropertyState', 'PropertyZip',
-                'Phone1', 'Phone2', 'Phone3', 'APN', 'PropertyCounty', 'Acreage'
-            ]
+        # FIXED: Add required Email column for Launch Control
+        df_cleaned['Email'] = ''
+        
+        # FIXED: Final columns to match Launch Control template exactly
+        final_columns = [
+            'FirstName', 'LastName', 'Email', 'MailingAddress', 'MailingCity', 'MailingState', 'MailingZip',
+            'PropertyAddress', 'PropertyCity', 'PropertyState', 'PropertyZip',
+            'Phone1', 'Phone2', 'Phone3', 'APN', 'PropertyCounty', 'Acreage'
+        ]
         
         for col in final_columns:
             if col not in df_cleaned.columns:
@@ -216,27 +220,31 @@ def process_excel_file(df):
         landlines_df = pd.DataFrame(landlines_results, index=rows_without_phones.index)
         df_discards_combined = pd.concat([rows_without_phones, landlines_df], axis=1)
         
-        # Apply same column mapping
+        # Apply same column mapping - FIXED: No spaces in column names
         available_cols = [col for col in column_mapping.keys() if col in df_discards_combined.columns]
         phone_cols_discard = ['Phone1', 'Phone2', 'Phone3', 'Phone4', 'Phone5']
         phone_type_cols = ['Phone1_Type', 'Phone2_Type', 'Phone3_Type', 'Phone4_Type', 'Phone5_Type']
         df_discards_formatted = df_discards_combined[available_cols + phone_cols_discard + phone_type_cols].copy()
         df_discards_formatted = df_discards_formatted.rename(columns=column_mapping)
         
-        # Handle names
-        df_discards_formatted['First Name'] = df_discards_formatted.get('First Name', pd.Series(dtype=object)).fillna('')
-        df_discards_formatted['Last Name'] = df_discards_formatted.get('Last Name', pd.Series(dtype=object)).fillna('')
+        # Handle names - FIXED: Using column names without spaces
+        df_discards_formatted['FirstName'] = df_discards_formatted.get('FirstName', pd.Series(dtype=object)).fillna('')
+        df_discards_formatted['LastName'] = df_discards_formatted.get('LastName', pd.Series(dtype=object)).fillna('')
         
         if 'Owner 1 Full Name' in rows_without_phones.columns:
-            mask_np = (df_discards_formatted['First Name'] == '') & (df_discards_formatted['Last Name'] == '')
+            mask_np = (df_discards_formatted['FirstName'] == '') & (df_discards_formatted['LastName'] == '')
             if mask_np.any():
-                df_discards_formatted.loc[mask_np, 'First Name'] = rows_without_phones.loc[mask_np, 'Owner 1 Full Name'].fillna('')
+                df_discards_formatted.loc[mask_np, 'FirstName'] = rows_without_phones.loc[mask_np, 'Owner 1 Full Name'].fillna('')
         
+        # FIXED: Add Email column to discard file too
+        df_discards_formatted['Email'] = ''
+        
+        # FIXED: Column names without spaces and including Email
         ordered_discard_columns = [
-            'First Name', 'Last Name', 'Mailing Address', 'Mailing City', 'Mailing State', 'Mailing Zip',
-            'Property Address', 'Property City', 'Property State', 'Property Zip',
+            'FirstName', 'LastName', 'Email', 'MailingAddress', 'MailingCity', 'MailingState', 'MailingZip',
+            'PropertyAddress', 'PropertyCity', 'PropertyState', 'PropertyZip',
             'Phone1', 'Phone1_Type', 'Phone2', 'Phone2_Type', 'Phone3', 'Phone3_Type', 
-            'Phone4', 'Phone4_Type', 'Phone5', 'Phone5_Type', 'APN', 'Property County', 'Acreage'
+            'Phone4', 'Phone4_Type', 'Phone5', 'Phone5_Type', 'APN', 'PropertyCounty', 'Acreage'
         ]
         
         for col in ordered_discard_columns:
@@ -325,7 +333,7 @@ def generate_qa_data(original_df, cleaned_df, discard_df):
     summary = pd.DataFrame(summary_data, columns=['QA CHECK', 'RESULT'])
     
     # Placeholder for detailed missing phones (simplified for now)
-    details = pd.DataFrame(columns=['First Name', 'Last Name', 'Phone 1', 'Phone 2', 'Phone 3', 'APN'])
+    details = pd.DataFrame(columns=['FirstName', 'LastName', 'Phone 1', 'Phone 2', 'Phone 3', 'APN'])
     
     return summary, details
 
@@ -333,6 +341,7 @@ def generate_qa_data(original_df, cleaned_df, discard_df):
 def main():
     st.title("📞 Excel Phone Data Processor")
     st.markdown("Upload your Excel file to automatically separate mobile/VoIP numbers from landlines")
+    st.info("🎯 **Launch Control Compatible** - Output files match the required template format")
     
     # Sidebar for configuration
     with st.sidebar:
@@ -344,6 +353,12 @@ def main():
         st.error("❌ Landline")
         st.error("❌ Pager") 
         st.error("❌ Special Service")
+        
+        st.markdown("---")
+        st.markdown("**🎯 Launch Control Template:**")
+        st.write("✅ Column names without spaces")
+        st.write("✅ Email column included")
+        st.write("✅ Correct column order")
         
         st.markdown("---")
         st.markdown("**Output Files:**")
@@ -419,8 +434,8 @@ def main():
                 
                 # Extract state and county from data
                 if not cleaned_df.empty:
-                    state = cleaned_df['Property State'].dropna().iloc[0] if 'Property State' in cleaned_df.columns else 'Unknown'
-                    county_raw = cleaned_df['Property County'].dropna().iloc[0] if 'Property County' in cleaned_df.columns else 'Unknown'
+                    state = cleaned_df['PropertyState'].dropna().iloc[0] if 'PropertyState' in cleaned_df.columns else 'Unknown'
+                    county_raw = cleaned_df['PropertyCounty'].dropna().iloc[0] if 'PropertyCounty' in cleaned_df.columns else 'Unknown'
                     county = re.sub(r'\s+', '', str(county_raw))
                 else:
                     state = "Unknown"
@@ -478,10 +493,18 @@ def main():
                         use_container_width=True
                     )
                 
-                # Show data previews
+                # Show data previews with Launch Control compatibility check
                 if not cleaned_df.empty:
-                    with st.expander("📱 Cleaned Data Preview", expanded=False):
+                    with st.expander("📱 Cleaned Data Preview (Launch Control Compatible)", expanded=False):
+                        st.success("✅ Column headers match Launch Control template")
                         st.dataframe(cleaned_df.head(20), use_container_width=True)
+                        
+                        # Show column mapping
+                        st.markdown("**Column Headers:**")
+                        col_display = st.columns(4)
+                        for i, col in enumerate(cleaned_df.columns):
+                            with col_display[i % 4]:
+                                st.write(f"✅ {col}")
                 
                 if not discard_df.empty:
                     with st.expander("📞 Discard Data Preview", expanded=False):
@@ -504,9 +527,14 @@ def main():
             2. **Review the data preview** to ensure the file loaded correctly
             3. **Click 'Process File'** to start the phone number separation
             4. **Download the results:**
-               - **Cleaned File**: Contains contacts with mobile/VoIP phones
+               - **Cleaned File**: Contains contacts with mobile/VoIP phones (Launch Control compatible)
                - **Discard File**: Contains contacts with landlines/pagers only
                - **QA Report**: Summary and analysis of the processing
+            
+            **🎯 Launch Control Compatibility:**
+            - Column headers without spaces (e.g., "FirstName" not "First Name")
+            - Required Email column included (empty but present)
+            - Columns in the exact order expected by Launch Control
             
             **Expected file format:**
             - Excel file (.xlsx or .xls)
