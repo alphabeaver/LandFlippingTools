@@ -188,11 +188,11 @@ def process_excel_file(df):
             if mask.any():
                 df_cleaned.loc[mask, 'First Name'] = df_with_phones.loc[mask, 'Owner 1 Full Name'].fillna('')
         
-        final_columns = [
-            'First Name', 'Last Name', 'Mailing Address', 'Mailing City', 'Mailing State', 'Mailing Zip',
-            'Property Address', 'Property City', 'Property State', 'Property Zip',
-            'Phone1', 'Phone2', 'Phone3', 'APN', 'Property County', 'Acreage'
-        ]
+           final_columns = [
+                'FirstName', 'LastName', 'Email','MailingAddress', 'MailingCity', 'MailingState', 
+                'MailingZip','PropertyAddress', 'PropertyCity', 'PropertyState', 'PropertyZip',
+                'Phone1', 'Phone2', 'Phone3', 'APN', 'PropertyCounty', 'Acreage'
+            ]
         
         for col in final_columns:
             if col not in df_cleaned.columns:
