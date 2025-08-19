@@ -152,6 +152,20 @@ def needs_scrub(owner_name, patterns):
     name_lower = str(owner_name).lower()
     return any(re.search(pattern, name_lower) for pattern in patterns)
 
+# Function to generate output filename
+def generate_filename(original_name, use_custom, custom_name, file_format):
+    if use_custom and custom_name.strip():
+        base_name = custom_name.strip()
+    else:
+        # Remove extension from original name and add SCRUB
+        base_name = original_name.rsplit('.', 1)[0] + "_SCRUB"
+    
+    # Add appropriate extension
+    if file_format == "Excel":
+        return f"{base_name}.xlsx"
+    else:
+        return f"{base_name}.csv"
+
 # Main app interface
 st.header("📁 Upload Your Excel File")
 
@@ -198,6 +212,47 @@ if uploaded_file is not None:
         for i, sample in enumerate(sample_data, 1):
             st.write(f"{i}. {sample}")
         
+        # Output Configuration Section
+        st.subheader("💾 Output Configuration")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # File format selection
+            output_format = st.radio(
+                "Select output format:",
+                options=["Excel", "CSV"],
+                index=0,
+                help="Choose whether to download as Excel (.xlsx) or CSV file"
+            )
+        
+        with col2:
+            # Filename options
+            use_custom_name = st.radio(
+                "Filename option:",
+                options=["Automatic (Original + SCRUB)", "Custom filename"],
+                index=0,
+                help="Choose between automatic naming or enter a custom filename"
+            )
+        
+        # Custom filename input (only shown if custom option selected)
+        custom_filename = ""
+        if use_custom_name == "Custom filename":
+            custom_filename = st.text_input(
+                "Enter custom filename (without extension):",
+                placeholder="my_cleaned_landowners",
+                help="Enter your preferred filename. The file extension will be added automatically."
+            )
+        
+        # Show preview of output filename
+        preview_filename = generate_filename(
+            uploaded_file.name, 
+            use_custom_name == "Custom filename", 
+            custom_filename, 
+            output_format
+        )
+        st.info(f"📄 Output filename will be: **{preview_filename}**")
+        
         # Process the data
         if st.button("🧹 Clean Data", type="primary", use_container_width=True):
             with st.spinner("Processing your data..."):
@@ -240,25 +295,41 @@ if uploaded_file is not None:
                 # Download cleaned file
                 st.subheader("💾 Download Cleaned Data")
                 
-                # Convert to Excel bytes
-                output = io.BytesIO()
-                with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                    cleaned_df.to_excel(writer, index=False, sheet_name='Cleaned_Data')
+                # Generate final filename
+                final_filename = generate_filename(
+                    uploaded_file.name,
+                    use_custom_name == "Custom filename",
+                    custom_filename,
+                    output_format
+                )
                 
-                excel_data = output.getvalue()
+                # Convert to appropriate format
+                if output_format == "Excel":
+                    # Convert to Excel bytes
+                    output = io.BytesIO()
+                    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                        cleaned_df.to_excel(writer, index=False, sheet_name='Cleaned_Data')
+                    file_data = output.getvalue()
+                    mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                else:
+                    # Convert to CSV
+                    file_data = cleaned_df.to_csv(index=False).encode('utf-8')
+                    mime_type = "text/csv"
                 
                 # Create download button
-                original_filename = uploaded_file.name
-                base_name = original_filename.rsplit('.', 1)[0]
-                cleaned_filename = f"{base_name}_cleaned.xlsx"
-                
                 st.download_button(
-                    label="📥 Download Cleaned Excel File",
-                    data=excel_data,
-                    file_name=cleaned_filename,
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    label=f"📥 Download Cleaned {output_format} File",
+                    data=file_data,
+                    file_name=final_filename,
+                    mime=mime_type,
                     use_container_width=True
                 )
+                
+                # Show format-specific info
+                if output_format == "Excel":
+                    st.info("📊 Excel format preserves all data types and formatting")
+                else:
+                    st.info("📄 CSV format is compatible with most spreadsheet applications")
                 
                 # Show preview of cleaned data
                 st.subheader("📋 Cleaned Data Preview")
